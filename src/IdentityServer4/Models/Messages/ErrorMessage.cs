@@ -58,5 +58,10 @@ namespace IdentityServer4.Models
         /// The response mode.
         /// </summary>
         public string ResponseMode { get; set; }
+
+        /// <summary>
+        /// The client id.
+        /// </summary>
+        public string ClientId { get; set; }
     }
 }
