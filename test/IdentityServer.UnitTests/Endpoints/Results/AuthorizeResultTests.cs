@@ -18,6 +18,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using IdentityServer.UnitTests.Common;
+using IdentityServer4.Models;
 
 namespace IdentityServer4.UnitTests.Endpoints.Results
 {
@@ -45,7 +46,7 @@ namespace IdentityServer4.UnitTests.Endpoints.Results
         }
 
         [Fact]
-        public async Task error_should_redirect_to_error_page_and_passs_info()
+        public async Task error_should_redirect_to_error_page_and_pass_info()
         {
             _response.Error = "some_error";
 
@@ -98,6 +99,24 @@ namespace IdentityServer4.UnitTests.Endpoints.Results
             _context.Response.StatusCode.Should().Be(302);
             var location = _context.Response.Headers["Location"].First();
             location.Should().StartWith("http://client/callback");
+        }
+
+        [Fact]
+        public async Task error_should_include_clientId_into_error_message()
+        {
+            _response.Error = OidcConstants.AuthorizeErrors.InvalidRequest;
+            _response.Request = new ValidatedAuthorizeRequest
+            {
+                ResponseMode = OidcConstants.ResponseModes.Query,
+                RedirectUri = "http://client/callback",
+                ClientId = "my-client-id"
+            };
+
+            await _subject.ExecuteAsync(_context);
+
+            _mockErrorMessageStore.Messages.Count.Should().Be(1);
+            Message<Models.ErrorMessage> errorMessage = _mockErrorMessageStore.Messages.First().Value;
+            errorMessage.Data.ClientId.Should().Be(_response.Request.ClientId);
         }
 
         [Fact]
